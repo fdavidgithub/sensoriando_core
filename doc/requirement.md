@@ -11,8 +11,11 @@ sudo apt-get upgrade
 
 ### Database
 ```console
-sudo apt-get install postgresql libpq-dev
-sudo vi /etc/postgres/10/main/pg_hda.conf
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" |sudo tee  /etc/apt/sources.list.d/pgdg.list
+sudo apt-get update
+sudo apt-get install postgresql-13 libpq-dev
+sudo vi /etc/postgres/13/main/pg_hba.conf
 ```
 
 after: local	all	postgres	peer
@@ -36,6 +39,12 @@ service ntp stop
 sudo service ntp stop
 sudo ntpdate a.ntp.br
 sudo service ntp start
+```
+### Management
+```console
+sudo apt-get install supervisor
+sudo echo_supervisord_conf > /tmp/supervisord.conf
+sudo cp /tmp/supervisord.conf /etc/supervisor/supervisord.conf
 ```
 
 ### Development

@@ -1,6 +1,20 @@
 #Sensoriando
 **Setup**
 
+## PostgreSQL
+```console
+psql -U postgres
+
+```
+
+```SQL
+ALTER USER postgres WITH PASSWORD 'masterkey';
+```
+
+```
+\q
+```
+
 ## Mosquitto
 ```console
 sudo systemctl stop mosquitto
