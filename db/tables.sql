@@ -36,7 +36,7 @@ CREATE TABLE Things (
     uuid        UUID NOT NULL DEFAULT uuid_generate_v4(), 
     isrelay     BOOLEAN NOT NULL DEFAULT FALSE,
 
-    UNIQUE (uuid)
+    UNIQUE (name, uuid)
 );
 
 CREATE TABLE ThingsParams (
