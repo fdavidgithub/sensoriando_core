@@ -14,8 +14,6 @@ version: "3.7"
 # Shell:
 # docker exec -it yout-container <cmd>
 services: 
-
-# 1. PostgresSQL Server 
   database: 
     image: postgres:13.7 
     ports: 
