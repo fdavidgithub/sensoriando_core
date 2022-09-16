@@ -13,6 +13,10 @@ version: "3.7"
 #
 # Shell:
 # docker exec -it yout-container <cmd>
+#
+# PSQL
+# psql -h 0.0.0.0 -U postgres
+
 services: 
   database: 
     image: postgres:13.7 
@@ -23,4 +27,9 @@ services:
     volumes:
       - ./db-data/:/var/lib/postgresql/data/
       - ./db/:/docker-entrypoint-initdb.d/
-      
+    networks:
+      - sensoriando
+
+networks:
+    sensoriando:
+        external: true
