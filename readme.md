@@ -13,4 +13,16 @@
 ./install.sh
 ```
 
+## Docker
+```console
+docker-compose up
+```
+
+When use docker-compose, need create .env file
+
+```
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=sensoriando
+```
 
