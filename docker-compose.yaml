@@ -23,8 +23,6 @@ services:
         image: postgres:13.7
         ports: 
             - 5432:5432
-        env_file:
-            - .env
         build:
             context: ./
             dockerfile: database.dockerfile
@@ -39,8 +37,6 @@ services:
         image: eclipse-mosquitto:2.0
         ports: 
             - 1883:1883
-        env_file:
-            - .env
         build:
             context: ./
             dockerfile: broker.dockerfile
@@ -55,8 +51,6 @@ services:
     daemon:
         container_name: sensoriando_daemon
         image: gcc:latest 
-        env_file:
-            - .env 
         build:
             context: ./
             dockerfile: daemon.dockerfile
