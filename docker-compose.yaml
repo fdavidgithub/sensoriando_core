@@ -18,19 +18,62 @@ version: "3.7"
 # psql -h 0.0.0.0 -U postgres
 
 services: 
-  database:
-    container_name: sensoriando_database
-    image: postgres:13.7 
-    ports: 
-      - 5432:5432
-    env_file:
-      - .env
-    volumes:
-      - ./db-data/:/var/lib/postgresql/data/
-      - ./db/:/docker-entrypoint-initdb.d/
-    networks:
-      - sensoriando
+    database:
+        container_name: sensoriando_database
+        image: postgres:13.7
+        ports: 
+            - 5432:5432
+        env_file:
+            - .env
+        build:
+            context: ./
+            dockerfile: database.dockerfile
+        volumes:
+            - ./database/data/:/var/lib/postgresql/data/
+        networks:
+            - sensoriando
+        restart: always
+
+    broker:
+        container_name: sensoriando_broker
+        image: eclipse-mosquitto:2.0
+        ports: 
+            - 1883:1883
+        env_file:
+            - .env
+        build:
+            context: ./
+            dockerfile: broker.dockerfile
+        volumes:
+            - ./broker/data/:/mosquitto/data/
+            - ./broker/log/:/mosquitto/log/
+            - ./broker/mosquitto.users:/mosquitto/config/mosquitto.users
+        networks:
+            - sensoriando
+        restart: always
+
+    daemon:
+        container_name: sensoriando_daemon
+        image: gcc:latest 
+        env_file:
+            - .env 
+        build:
+            context: ./
+            dockerfile: daemon.dockerfile
+        command: /app/subscriber 
+#        command: bash
+#        stdin_open: true
+#        tty: true
+        depends_on:
+            - database
+            - broker
+        networks:
+            - sensoriando
+        restart: always
 
 networks:
     sensoriando:
         external: true
+
+
+

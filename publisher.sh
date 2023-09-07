@@ -1,67 +1,62 @@
 # Create a Payload for test
 #!/bin/bash
-if [ -z $4 ]; then
-    source common.sh sensoriando.conf
-else
-    source common.sh $4
-fi
+source .env
+export MOSQUITTO_HOST=localhost
 
 THING=$1
-SENSOR=$2
-NODATE=$3
+NODATE=$2
 
-if [ -z $THING ]; then
+PSQL="psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB"
+PUB="mosquitto_pub -i "scriptPublisher" -h $MOSQUITTO_HOST -u $MOSQUITTO_USER -P $MOSQUITTO_PASSWORD -q $MOSQUITTO_QOS"
+
+if [ -z "$THING" ]; then
     export THING=1
 fi
 
-if [ -z $SENSOR ]; then
-    export SENSOR=1
-fi
-
-if [ -z $NODATE ]; then
+if [ -z "$NODATE" ]; then
     export NODATE=0
 fi
 
-UUID=$(psql -c "select uuid from things where id = $THING" -t)
-SENSOR=$(psql -c "select id from thingssensors where id = $SENSOR" -t)
-QOS=1		# 0, 1 or 2
-RETAINED=1 	# 1 true or 0 false
+if [ -z "$RETAINED" ]; then
+    export RETAINED=0
+fi
+
+UUID=$($PSQL -c "select uuid from things where id = $THING" -t)
+THINGSENSOR=$($PSQL -c "select id from thingssensors where id_thing = $THING limit 1" -t)
+
+if [ -z "$UUID" ]; then
+    echo -e "Thing ID $THING do not found"
+    exit 1
+fi
+
+if [ -z "$THINGSENSOR"  ]; then
+    echo -e "Sensor do not found"
+    exit 1
+fi
 
 VALUE=$(((RANDOM % 100) +1))
-if [ $SENSOR -eq 3 ]; then
-    VALUE="abc $VALUE"
-fi
-
 DATE=$(date -u '+%Y%m%d%H%M%S')
 
-if [ $SENSOR -eq 3 ]; then
-    if [ $NODATE -eq 1 ]; then
-        PAYLOAD="{\"value\": \"$VALUE\"}"
-    else
-        PAYLOAD="{\"dt\": \"$DATE\", \"value\": \"$VALUE\"}"
-    fi
+if [ -z "$NODATE" ]; then
+    PAYLOAD="{\"value\": $VALUE}"
 else
-    if [ $NODATE -eq 1 ]; then
-        PAYLOAD="{\"value\": $VALUE}"
-    else
-        PAYLOAD="{\"dt\": \"$DATE\", \"value\": $VALUE}"
-    fi
+    PAYLOAD="{\"dt\": \"$DATE\", \"value\": $VALUE}"
 fi
 
-USER=fdavid
-PASSWD=12345678
-
-TOPIC=$UUID/$SENSOR
+TOPIC=$UUID/$THINGSENSOR
 TOPIC=$(echo $TOPIC | sed 's/ //g') #Remove whitespace
 
-echo "Thing  : $UUID"
-echo "ModuleSensor : $SENSOR"
-echo "Topic  : $TOPIC"
-echo "Payload: $PAYLOAD"
+echo -e "Thing:\t$UUID"
+echo -e "Sensor:\t$THINGSENSOR"
+echo -e "Topic:\t$TOPIC"
+echo -e "Payload:\t$PAYLOAD"
+echo -e "\n"
 
-if [ $RETAINED == 1 ]; then
-	mosquitto_pub -h localhost -r -q $QOS -t $TOPIC -m "$PAYLOAD" -u $USER -P $PASSWD
+if [ $MOSQUITTO_RETAINED -eq 1 ]; then
+	$PUB -r -t $TOPIC -m "$PAYLOAD"
 else
-	mosquitto_pub -h localhost -q $QOS -t $TOPIC -m "$PAYLOAD" -u $USER -P $PASSWD
+	$PUB -t $TOPIC -m "$PAYLOAD"
 fi
+
+exit 0
 

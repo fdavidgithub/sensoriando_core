@@ -1,8 +1,11 @@
 subscriber
+mosquitto.users
+.env
+
 *.o
 *.swp
 a.out
 *.*~
-db-data
-.env
+data
+log
 

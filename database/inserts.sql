@@ -21,17 +21,11 @@ DECLARE
     Storage         VARCHAR := 'Armazenamento';
 
     /*
-     * Things
+     * Plans
      */
-    Hub             VARCHAR := 'Prototype Hub';
-    Sensor          VARCHAR := 'Prototype Sensor';
-    Relay           VARCHAR := 'Prototype Relay';
+    Free            VARCHAR := 'Gratuito';
 BEGIN
-    INSERT INTO Plans  (name) VALUES ('Gratuito');
-
-    INSERT INTO Things (name) VALUES (Hub);
-    INSERT INTO Things (name) VALUES (Sensor);
-    INSERT INTO Things (name, isrelay) VALUES (Relay, TRUE);
+    INSERT INTO Plans  (name) VALUES (Free);
 
     INSERT INTO Sensors (name)
     VALUES	(RTC),
@@ -103,17 +97,6 @@ BEGIN
             ('Kilobyte',            'KB',   2, (SELECT id FROM Sensors WHERE name = Storage), 'TRUE', 'pv'),
             ('Megabyte',            'MB',   2, (SELECT id FROM Sensors WHERE name = Storage), 'FALSE', 'pv / 1024'),
             ('Gigabyte',            'GB',   2, (SELECT id FROM Sensors WHERE name = Storage), 'FALSE', '(pv / 1024) / 1024');
-
-
-    INSERT INTO ThingsSensors (id_thing, id_sensor)
-    VALUES ((SELECT id FROM Things WHERE name = Hub), (SELECT id FROM Sensors WHERE name = RTC)),
-           ((SELECT id FROM Things WHERE name = Hub), (SELECT id FROM Sensors WHERE name = Storage)),
-           ((SELECT id FROM Things WHERE name = Hub), (SELECT id FROM Sensors WHERE name = Message)),
- 
-           ((SELECT id FROM Things WHERE name = Relay), (SELECT id FROM Sensors WHERE name = State)),
-        
-           ((SELECT id FROM Things WHERE name = Sensor), (SELECT id FROM Sensors WHERE name = Temperature)),
-           ((SELECT id FROM Things WHERE name = Sensor), (SELECT id FROM Sensors WHERE name = Humidity));
 
 END;
 $$ LANGUAGE plpgsql;

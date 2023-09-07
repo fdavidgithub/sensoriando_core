@@ -10,7 +10,6 @@
 #define MQTT_ID     "Broker"
 #define MQTT_QOS    2   /* Once and one only - the message will be delivered exactly once. */
 
-#define LEN_BUFFER  256
 #define LEN_UUID    36
 
 
@@ -26,19 +25,18 @@ const char verbose_param[]  = "-v";
  *  Global variables
  */
 int verbose = 0;
-char config_file[LEN_BUFFER]   = "sensoriando.conf";
  
 PGconn *conn;           /* Server Postgres */
 MQTTClient client;      /* Server MQTT */
  
-char db_host[LEN_BUFFER];
-char db_name[LEN_BUFFER];
-char db_username[LEN_BUFFER];
-char db_password[LEN_BUFFER];
+char *db_host;
+char *db_name;
+char *db_username;
+char *db_password;
 
-char mqtt_server[LEN_BUFFER];
-char mqtt_username[LEN_BUFFER];
-char mqtt_password[LEN_BUFFER];
+char *mqtt_host;
+char *mqtt_username;
+char *mqtt_password;
 
 
 /*
@@ -75,10 +73,6 @@ main(int argc, char *argv[])
             verbose = 1;
         }
 
-        if ( strncmp(argv[i], config_param, sizeof(config_param)) == 0 ) {
-            i++;
-            strcpy(config_file, argv[i]);
-        }
     }
 
     setconfig(); 
@@ -88,12 +82,12 @@ main(int argc, char *argv[])
      * Show params
      */
     if ( verbose ) {
-        printf("Config file: %s\n", config_file);
         printf("\nMQTT Settings\n");
-        printf("Broker: %s\n", mqtt_server);
+        printf("Broker: %s\n", mqtt_host);
         printf("Username: %s\n", mqtt_username);
         printf("Password: %s\n", mqtt_password);
-        printf("\nPostgreSQL Settings\n");
+        printf("\n");
+        printf("PostgreSQL Settings\n");
         printf("Host: %s\n", db_host);
         printf("Name: %s\n", db_name);
         printf("Username: %s\n", db_username);
@@ -106,7 +100,7 @@ main(int argc, char *argv[])
     /* 
      * Init MQTT (conect & subscribe) 
      */
-    rc = MQTTClient_create(&client, mqtt_server, MQTT_ID, MQTTCLIENT_PERSISTENCE_NONE, NULL);
+    rc = MQTTClient_create(&client, mqtt_host, MQTT_ID, MQTTCLIENT_PERSISTENCE_NONE, NULL);
 
     if ( rc != MQTTCLIENT_SUCCESS ) {
 	    printf("Error on create MQTTClient, return code: %d\n", rc);
@@ -127,11 +121,11 @@ main(int argc, char *argv[])
 
     rc = MQTTClient_connect(client, &conn_opts);
 
-    if (rc != MQTTCLIENT_SUCCESS) {
-       printf("Fail while connect subscriber, return code: %d\n", rc);
-       return rc;
-    } else if ( verbose ) {
-       printf("MQTT server connected!\n");
+    if (rc == MQTTCLIENT_SUCCESS) {
+        printf("MQTT server connected!\n");
+    } else {
+        printf("Fail while connect subscriber, return code: %d\n", rc);
+        return rc;
     }
 
     MQTTClient_subscribe(client, MQTT_TOPIC, MQTT_QOS);
@@ -143,21 +137,17 @@ main(int argc, char *argv[])
     conn = do_connect(db_name, db_username, db_password, db_host);
  
     if ( conn ) {
-        if ( verbose ) {
-            printf("\tPosgreSQL server Connected!\n");
-        }
+        printf("PosgreSQL server Connected!\n");
     } else {
         printf("Fail while connect database\n");
-        return 0;
+        return 1;
     }
 
 
     /*
      * Loop waiting
      */
-    if ( verbose ) {
-        printf("\nWaiting payload... \n");
-    }
+    printf("\nDaemon waiting for payload... \n");
    
     while (1) {       
         //if key press Q or ESC, break
@@ -240,55 +230,65 @@ print_help()
     printf("Usage: subscriber\n");
     printf("%s\tThis help\n", help_param);
     printf("%s\tMode Verbose\n", verbose_param);
-    printf("%s\tConfig file, default: %s\n", config_param, config_file);
 }
 
 void 
 setconfig()
 {
-    FILE *fd;
-    char buffer[LEN_BUFFER];
+    const char env_mqtt_host[] = "MOSQUITTO_HOST";
+    const char env_mqtt_user[] = "MOSQUITTO_USER";
+    const char env_mqtt_passwd[] = "MOSQUITTO_PASSWORD";
+    const char env_db_host[] = "POSTGRES_HOST";
+    const char env_db_name[] = "POSTGRES_DB";
+    const char env_db_user[] = "POSTGRES_USER";
+    const char env_db_passwd[] = "POSTGRES_PASSWORD";
 
-    /*
-     * Config file
-     */
-    fd = fopen(config_file, "r");
+    int empty = 0;
 
-    while ( ! feof(fd) ) {
-        fgets( buffer, LEN_BUFFER, fd );
-
-        if ( buffer[0] != '#' ) {
-            if ( strstr(buffer, "mqtt_host") ) {
-                sscanf(buffer, "mqtt_host=%s\n", mqtt_server);
-            }
-
-            if ( strstr(buffer, "mqtt_user") ) {
-                sscanf(buffer, "mqtt_user=%s\n", mqtt_username);
-            }
-
-            if ( strstr(buffer, "mqtt_passwd") ) {
-                sscanf(buffer, "mqtt_passwd=%s\n", mqtt_password);
-            }
-
-            if ( strstr(buffer, "db_host") ) {
-                sscanf(buffer, "db_host=%s\n", db_host);
-            }
- 
-            if ( strstr(buffer, "db_name") ) {
-                sscanf(buffer, "db_name=%s\n", db_name);
-            }
- 
-            if ( strstr(buffer, "db_user") ) {
-                sscanf(buffer, "db_user=%s\n", db_username);
-            }
-
-            if ( strstr(buffer, "db_passwd") ) {
-                sscanf(buffer, "db_passwd=%s\n", db_password);
-            }
-
-        }
+    mqtt_host = getenv(env_mqtt_host);
+    if ( !mqtt_host ) {
+        printf("Empty environment: %s\n", env_mqtt_host);
+        empty = 1;
     }
 
-    fclose(fd);
+    mqtt_username = getenv(env_mqtt_user);
+    if ( !mqtt_username ) {
+        printf("Empty environment: %s\n", env_mqtt_user);
+        empty = 1;
+    }
+
+    mqtt_password = getenv(env_mqtt_passwd);
+    if ( !mqtt_password ) {
+        printf("Empty environment: %s\n", env_mqtt_passwd);
+        empty = 1;
+    }
+
+    db_host = getenv(env_db_host);
+    if ( !db_host ) {
+        printf("Empty environment: %s\n", env_db_host);
+        empty = 1;
+    }
+
+    db_name = getenv(env_db_name);
+    if ( !db_name ) {
+        printf("Empty environment: %s\n", env_db_name);
+        empty = 1;
+    }
+
+    db_username = getenv(env_db_user);
+    if ( !db_username ) {
+        printf("Empty environment: %s\n", env_db_user);
+        empty = 1;
+    }
+
+    db_password = getenv(env_db_passwd);
+    if ( !db_password ) {
+        printf("Empty environment: %s\n", env_mqtt_passwd);
+        empty = 1;
+    }
+
+    if ( empty ) {
+        exit(1);
+    }
 }
 

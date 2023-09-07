@@ -8,21 +8,69 @@
 
 ## Install
 
-1. Create database
+1. Create docker's images
 ```console
-./install.sh
+docker-compose build
 ```
 
-## Docker
+2. Docker
 ```console
-docker-compose up
+docker network create sensoriando
+docker-compose up -d
 ```
 
-When use docker-compose, need create .env file
+3. Postgres
 
+    3.1. Set password 
+    ```console 
+    docker exec -it sensoriando_database psql -U postgres
+    ```
+
+    ```SQL
+    ALTER USER postgres PASSWORD '[your passwd]';
+    QUIT
+    ```
+
+    3.2. Create schemes
+    ```console
+    cd database
+    ./install.sh sensoriando_database
+    ```
+
+    3.3. Load demo records **(opcional)**
+    ```console
+    docker exec -it sensoriando_database psql -U postgres -d sensoriando -f demo.sql
+    ```
+
+4. Mosquitto
+    3.1. Set password 
+    ```console 
+    docker exec -it sensoriando_broker mosquitto_passwd -b /mosquitto/config/mosquitto.users [you username] [your password]
+    ```
+
+5. Environment
+Create .env file
+
+```console
+touch .env
 ```
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=sensoriando
+```console
+export MOSQUITTO_HOST=sensoriando_broker
+export MOSQUITTO_USER=[your username]
+export MOSQUITTO_PASSWORD=[your password]
+export MOSQUITTO_PORT=1883
+export MOSQUITTO_QOS=1
+export MOSQUITTO_RETAINED=0
+
+export POSTGRES_HOST=sensoriando_database
+export POSTGRES_USER=postgres
+export POSTGRES_PASSWORD=[your password]
+export POSTGRES_DB=sensoriando
+export POSTGRES_PORT=5432
+```
+
+6. Reload
+```console
+docker-compose restart
 ```
 
