@@ -26,6 +26,8 @@ services:
         build:
             context: ./
             dockerfile: database.dockerfile
+        env-file:
+            - .env
         volumes:
             - ./database/data/:/var/lib/postgresql/data/
         networks:
@@ -40,6 +42,8 @@ services:
         build:
             context: ./
             dockerfile: broker.dockerfile
+        env-file:
+            - .env
         volumes:
             - ./broker/data/:/mosquitto/data/
             - ./broker/log/:/mosquitto/log/
@@ -54,10 +58,9 @@ services:
         build:
             context: ./
             dockerfile: daemon.dockerfile
+        env-file:
+            - .env
         command: /app/subscriber 
-#        command: bash
-#        stdin_open: true
-#        tty: true
         depends_on:
             - database
             - broker
