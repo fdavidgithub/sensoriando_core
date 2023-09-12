@@ -1,4 +1,5 @@
 subscriber
+mosquitto.users
 .env
 
 *.o
