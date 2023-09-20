@@ -1,24 +1,14 @@
 # Create a Payload for test
 #!/bin/bash
 source .env
-export MOSQUITTO_HOST=localhost
 
 THING=$1
-NODATE=$2
 
 PSQL="psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB"
 PUB="mosquitto_pub -i "scriptPublisher" -h $MOSQUITTO_HOST -u $MOSQUITTO_USER -P $MOSQUITTO_PASSWORD -q $MOSQUITTO_QOS"
 
 if [ -z "$THING" ]; then
     export THING=1
-fi
-
-if [ -z "$NODATE" ]; then
-    export NODATE=0
-fi
-
-if [ -z "$RETAINED" ]; then
-    export RETAINED=0
 fi
 
 UUID=$($PSQL -c "select uuid from things where id = $THING" -t)
@@ -36,12 +26,7 @@ fi
 
 VALUE=$(((RANDOM % 100) +1))
 DATE=$(date -u '+%Y%m%d%H%M%S')
-
-if [ -z "$NODATE" ]; then
-    PAYLOAD="{\"value\": $VALUE}"
-else
-    PAYLOAD="{\"dt\": \"$DATE\", \"value\": $VALUE}"
-fi
+PAYLOAD="{\"dt\": \"$DATE\", \"value\": $VALUE}"
 
 TOPIC=$UUID/$THINGSENSOR
 TOPIC=$(echo $TOPIC | sed 's/ //g') #Remove whitespace

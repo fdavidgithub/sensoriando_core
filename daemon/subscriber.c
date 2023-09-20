@@ -84,14 +84,20 @@ main(int argc, char *argv[])
     if ( verbose ) {
         printf("\nMQTT Settings\n");
         printf("Broker: %s\n", mqtt_host);
+
+#ifdef DEBUG
         printf("Username: %s\n", mqtt_username);
         printf("Password: %s\n", mqtt_password);
+#endif
         printf("\n");
+
         printf("PostgreSQL Settings\n");
         printf("Host: %s\n", db_host);
-        printf("Name: %s\n", db_name);
+        printf("Name: %s\n", db_name);        
+#ifdef DEBUG
         printf("Username: %s\n", db_username);
         printf("Password: %s\n", db_password);
+#endif        
         
         printf("\n");
     }
@@ -111,11 +117,6 @@ main(int argc, char *argv[])
     conn_opts.cleansession = 1;
     conn_opts.username = mqtt_username;
     conn_opts.password = mqtt_password; 
-
-#ifdef DEBUG
-    printf("MQTT user: %s\n", mqtt_username);
-    printf("MQTT pass: %s\n", mqtt_password);
-#endif
 
     MQTTClient_setCallbacks(client, NULL, NULL, on_message, NULL);
 

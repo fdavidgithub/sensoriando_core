@@ -60,7 +60,7 @@ services:
             dockerfile: daemon.dockerfile
         env_file:
             - .env
-        command: /app/subscriber 
+        command: /app/subscriber -v 
         depends_on:
             - database
             - broker
