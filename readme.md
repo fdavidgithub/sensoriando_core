@@ -58,15 +58,15 @@ touch .env
 contexts .env file:
 ```console
 export MOSQUITTO_HOST=sensoriando_broker
-export MOSQUITTO_USER=[your username]
-export MOSQUITTO_PASSWORD=[your password]
+export MOSQUITTO_USER=mosquitto
+export MOSQUITTO_PASSWORD="your password"
 export MOSQUITTO_PORT=1883
 export MOSQUITTO_QOS=1
 export MOSQUITTO_RETAINED=0
 
 export POSTGRES_HOST=sensoriando_database
 export POSTGRES_USER=postgres
-export POSTGRES_PASSWORD=[your password]
+export POSTGRES_PASSWORD="your password"
 export POSTGRES_DB=sensoriando
 export POSTGRES_PORT=5432
 ```
