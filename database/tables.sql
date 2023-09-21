@@ -33,7 +33,7 @@ CREATE TABLE Things (
     id          SERIAL NOT NULL PRIMARY KEY,
     dt          TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     name        VARCHAR(30) NOT NULL,
-    uuid        UUID NOT NULL DEFAULT uuid_generate_v4(), 
+    uuid        UUID NOT NULL DEFAULT uuid_generate_v4() UNIQUE, 
     isrelay     BOOLEAN NOT NULL DEFAULT FALSE,
 
     UNIQUE (name, uuid)
