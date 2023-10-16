@@ -69,6 +69,9 @@ export POSTGRES_USER=postgres
 export POSTGRES_PASSWORD="your password"
 export POSTGRES_DB=sensoriando
 export POSTGRES_PORT=5432
+
+export DOCKER_POSTGRES_DATA=./database/data
+export DOCKER_MOSQUITTO_DATA=./broker/data
 ```
 
 6. Reload
