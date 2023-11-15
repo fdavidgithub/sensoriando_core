@@ -32,8 +32,8 @@ BEGIN
             (Storage),
             (Message),
             (Volume),
+            (Distance),
 	        (Temperature),
-            (Humidity),
 	        (Mass),
 	        (CurrentEletric),
 	        (EletricTension),
@@ -43,7 +43,7 @@ BEGIN
             (Power),
             (Sound),
             (State),
-            (Distance);
+            (Humidity);
 
 
     INSERT INTO SensorsUnits (name, initial, precision, id_sensor, isdefault, expression)
