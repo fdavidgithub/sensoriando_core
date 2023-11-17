@@ -26,8 +26,7 @@ $$
 BEGIN
     INSERT INTO ThingsSensorsData (id_payload, id_thingsensor, dtread, value, message)
     SELECT  p.id,
-
-            SUBSTRING(c.topic, STRPOS(c.topic, '/')+1, LENGTH(c.topic))::INTEGER, 
+            ts.id, 
 
             CASE 
                 WHEN p.payload->>'dt' IS NOT NULL 
@@ -48,6 +47,9 @@ BEGIN
             END
     FROM Payloads p
       INNER JOIN Connections c ON c.id = p.id_connection
+      INNER JOIN Things t ON t.uuid = SUBSTRING(c.topic, 1, STRPOS(c.topic, '/')-1)::uuid
+      INNER JOIN ThingsSensors ts ON ts.id_thing = t.id 
+                                 AND ts.id_sensor = SUBSTRING(c.topic, STRPOS(c.topic, '/')+1, LENGTH(c.topic))::INTEGER
     WHERE p.id = id_payload;
       
 END;
