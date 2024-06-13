@@ -29,7 +29,7 @@ services:
         env_file:
             - .env
         volumes:
-            - ./database/data/:/var/lib/postgresql/data/
+            - ${DOCKER_POSTGRES_DATA}:/var/lib/postgresql/data/
         networks:
             - sensoriando
         restart: always
@@ -45,7 +45,7 @@ services:
         env_file:
             - .env
         volumes:
-            - ./broker/data/:/mosquitto/data/
+            - ${DOCKER_MOSQUITTO_DATA}:/mosquitto/data/
             - ./broker/log/:/mosquitto/log/
             - ./broker/mosquitto.users:/mosquitto/config/mosquitto.users
         networks:
