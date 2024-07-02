@@ -17,9 +17,76 @@ BEGIN
 
     INSERT INTO Payloads (id_connection, payload)
     VALUES (connId, connPayload);
+
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE PROCEDURE DailyAverageDataInsert(
+    day_param   INTEGER,
+    month_param INTEGER,
+    year_param  INTEGER 
+) AS
+$$
+DECLARE
+    dtTarget DATE;
+BEGIN
+    dtTarget := MAKE_DATE(year_param, month_param, day_param);
+
+    INSERT INTO DailyAverageData (id_thingsensor, year, month, day, value)
+    SELECT  tsd.id_thingsensor,    
+            EXTRACT(YEAR FROM tsd.dtread),
+            EXTRACT(MONTH FROM tsd.dtread),
+            EXTRACT(DAY FROM tsd.dtread),
+            AVG(tsd.value)
+    FROM ThingsSensorsData tsd
+    WHERE tsd.dtread::date = dtTarget 
+    GROUP BY    tsd.id_thingsensor,
+                EXTRACT(YEAR FROM tsd.dtread),
+                EXTRACT(MONTH FROM tsd.dtread),
+                EXTRACT(DAY FROM tsd.dtread);
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE MonthlyAverageDataInsert(
+    month_param INTEGER,
+    year_param  INTEGER 
+) AS
+$$
+DECLARE
+    dtTarget DATE;
+BEGIN
+    INSERT INTO MonthlyAverageData (id_thingsensor, year, month, value)
+    SELECT  dad.id_thingsensor,    
+            dad.year,
+            dad.month,
+            AVG(dad.value)
+    FROM DailyAverageData dad
+    WHERE   dad.month = month_param
+    AND     dad.year = year_param
+    GROUP BY    dad.id_thingsensor,
+                dad.year, 
+                dad.month; 
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE YearlyAverageDataInsert(
+    year_param INTEGER
+) AS
+$$
+BEGIN
+    INSERT INTO YearlyAverageData (id_thingsensor, year, value)
+    SELECT  mad.id_thingsensor,    
+            mad.year,
+            AVG(mad.value)
+    FROM MonthlyAverageData mad
+    WHERE mad.year = year_param
+    GROUP BY    mad.id_thingsensor,
+                mad.year;
+
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE PROCEDURE DatumFromJson(id_payload INTEGER) AS
 $$
@@ -48,8 +115,9 @@ BEGIN
     FROM Payloads p
       INNER JOIN Connections c ON c.id = p.id_connection
       INNER JOIN Things t ON t.uuid = SUBSTRING(c.topic, 1, STRPOS(c.topic, '/')-1)::uuid
+      INNER JOIN Sensors s ON s.id = SUBSTRING(c.topic, STRPOS(c.topic, '/')+1, LENGTH(c.topic))::INTEGER 
       INNER JOIN ThingsSensors ts ON ts.id_thing = t.id 
-                                 AND ts.id_sensor = SUBSTRING(c.topic, STRPOS(c.topic, '/')+1, LENGTH(c.topic))::INTEGER
+                                 AND ts.id_sensor = s.id     
     WHERE p.id = id_payload;
       
 END;

@@ -32,7 +32,7 @@ BEGIN
             (Storage),
             (Message),
             (Volume),
-            (Distance),
+	        (Distance),
 	        (Temperature),
 	        (Mass),
 	        (CurrentEletric),
@@ -44,7 +44,6 @@ BEGIN
             (Sound),
             (State),
             (Humidity);
-
 
     INSERT INTO SensorsUnits (name, initial, precision, id_sensor, isdefault, expression)
     VALUES	('Litro',               'l',    3, (SELECT id FROM Sensors WHERE name = Volume), 'FALSE', 'pv * 1000'),

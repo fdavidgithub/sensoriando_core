@@ -8,30 +8,6 @@
 
 ## Install
 
-Example Environment File 
-```console
-cat << EOF > $(pwd)/.env
-export MOSQUITTO_HOST=sensoriando_broker
-export MOSQUITTO_USER=mosquitto
-export MOSQUITTO_PASSWORD="your password"
-export MOSQUITTO_PORT=1883
-export MOSQUITTO_QOS=1
-export MOSQUITTO_RETAINED=0
-
-export POSTGRES_HOST=sensoriando_database
-export POSTGRES_USER=postgres
-export POSTGRES_PASSWORD="your password"
-export POSTGRES_DB=sensoriando
-export POSTGRES_PORT=5432
-
-export DJANGO_PORT=80
-export DJANGO_PARAMS="--noreload"
-
-export DOCKER_POSTGRES_DATA=$(pwd)/database/data
-export DOCKER_MOSQUITTO_DATA=$(pwd)/broker/data
-EOF
-```
-
 1. Create docker's images
 ```console
 docker-compose build
@@ -72,7 +48,30 @@ docker-compose up -d
     docker exec -it sensoriando_broker mosquitto_passwd -b /mosquitto/config/mosquitto.users [you username] [your password]
     ```
 
-5. Reload
+5. Environment
+Create .env file
+
+```console
+touch .env
+```
+
+contexts .env file:
+```console
+export MOSQUITTO_HOST=sensoriando_broker
+export MOSQUITTO_USER=mosquitto
+export MOSQUITTO_PASSWORD="your password"
+export MOSQUITTO_PORT=1883
+export MOSQUITTO_QOS=1
+export MOSQUITTO_RETAINED=0
+
+export POSTGRES_HOST=sensoriando_database
+export POSTGRES_USER=postgres
+export POSTGRES_PASSWORD="your password"
+export POSTGRES_DB=sensoriando
+export POSTGRES_PORT=5432
+```
+
+6. Reload
 ```console
 docker-compose restart
 ```
