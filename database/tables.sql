@@ -159,4 +159,37 @@ CREATE TABLE ThingsSensorsData (
     UNIQUE (id_payload, id_thingsensor)
 );
 
+CREATE TABLE DailyAverageData (
+    id              SERIAL NOT NULL PRIMARY KEY,
+    dt              TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_thingsensor  INTEGER NOT NULL REFERENCES ThingsSensors (id),
+    day             INTEGER NOT NULL CHECK (day >= 1 AND day <= 31),
+    month           INTEGER NOT NULL CHECK (month >= 1 AND month <= 12),
+    year            INTEGER NOT NULL,
+    value           FLOAT,
+    
+    UNIQUE (id_thingsensor, day, month, year)
+);
+
+CREATE TABLE MonthlyAverageData (
+    id              SERIAL NOT NULL PRIMARY KEY,
+    dt              TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_thingsensor  INTEGER NOT NULL REFERENCES ThingsSensors (id),
+    month           INTEGER NOT NULL CHECK (month >= 1 AND month <= 12),
+    year            INTEGER NOT NULL,
+    value           FLOAT,
+    
+    UNIQUE (id_thingsensor, month, year)
+);
+
+CREATE TABLE YearlyAverageData (
+    id              SERIAL NOT NULL PRIMARY KEY,
+    dt              TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id_thingsensor  INTEGER NOT NULL REFERENCES ThingsSensors (id),
+    year            INTEGER NOT NULL,
+    value           FLOAT,
+    
+    UNIQUE (id_thingsensor, year)
+);
+
 
