@@ -192,4 +192,12 @@ CREATE TABLE YearlyAverageData (
     UNIQUE (id_thingsensor, year)
 );
 
+/*
+ * Logs
+ */
+CREATE TABLE logCrons (
+    id              SERIAL NOT NULL PRIMARY KEY,
+    dt              TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    command         VARCHAR(50) NOT NULL
+);
 
