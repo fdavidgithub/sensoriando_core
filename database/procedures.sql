@@ -53,8 +53,6 @@ CREATE OR REPLACE PROCEDURE MonthlyAverageDataInsert(
     year_param  INTEGER 
 ) AS
 $$
-DECLARE
-    dtTarget DATE;
 BEGIN
     INSERT INTO MonthlyAverageData (id_thingsensor, year, month, value)
     SELECT  dad.id_thingsensor,    
@@ -120,6 +118,68 @@ BEGIN
                                  AND ts.id_sensor = s.id     
     WHERE p.id = id_payload;
       
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE jobDailyAverageData() AS
+$$
+DECLARE
+    dt      DATE;
+    day     INTEGER;
+    month   INTEGER;
+    year    INTEGER;
+    command VARCHAR(50);
+BEGIN
+    dt := CURRENT_DATE - INTERVAL '1 day';
+    day := EXTRACT(DAY FROM dt);
+    month := EXTRACT(MONTH FROM dt);
+    year := EXTRACT(YEAR FROM dt);
+    command := 'DailyAverageDataInsert(' || day || ',' || month || ',' || year || ')';   
+    CALL DailyAverageDataInsert(day, month, year);
+    
+    INSERT INTO logCrons (command)
+    VALUES (command);
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE jobMonthlyAverageData() AS
+$$
+DECLARE
+    dt      DATE;
+    month   INTEGER;
+    year    INTEGER;
+    command VARCHAR(50);
+BEGIN
+    dt := CURRENT_DATE - INTERVAL '1 month';
+    month := EXTRACT(MONTH FROM dt);
+    year := EXTRACT(YEAR FROM dt);
+    command := 'MonthlyAverageDataInsert(' || month || ',' || year || ')'; 
+
+    CALL MonthlyAverageDataInsert(month, year);
+
+    INSERT INTO logCrons (command)
+    VALUES (command);
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE jobYearlyAverageData() AS
+$$
+DECLARE
+    dt      DATE;
+    year    INTEGER;
+    command VARCHAR(50);
+BEGIN
+    dt := CURRENT_DATE - INTERVAL '1 year';
+    year := EXTRACT(YEAR FROM dt);
+    command := 'YearlyAverageDataInsert(' || year || ')'; 
+
+    CALL YearlyAverageDataInsert(year);
+
+    INSERT INTO logCrons (command)
+    VALUES (command);
+
 END;
 $$ LANGUAGE plpgsql;
 
